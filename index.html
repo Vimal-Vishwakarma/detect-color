@@ -1,0 +1,130 @@
+<html>
+    <head>
+        <title>Pong</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+    <!-- container -->
+    <div class='container'>
+        <h1> which is lighter ? </h1>
+        <div class='level'> Level <span> 1 </span></div>
+        <div class='diff'> <span>30.00</span>% difference </div>
+        <ul class='options'>
+            <li>
+                <svg>
+                    <use href='#check'></use>
+                    <use href='#cross'></use>
+                </svg>
+            </li>
+            <li>
+                <svg>
+                    <use href='#check'></use>
+                    <use href='#cross'></use>
+                </svg>
+            </li>
+        </ul>
+    </div>
+    
+    <div id='result-container' hidden>
+        <h1> RESULT </h1>
+        <p> You can detect <span id="result"> </span>% difference of lightness in color </p>
+        <button id='retry'> RETRY </button>
+    </div>
+    
+    <svg style='display:none'>
+        <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" id='check'>
+            <path d="M0 0h24v24H0V0z" fill="none" />
+            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
+        </symbol>
+    
+        <symbol xmlns="http://www.w3.org/2000/svg" id='cross' viewBox="0 0 24 24" fill="white">
+            <path d="M0 0h24v24H0V0z" fill="none" />
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+        </symbol>
+    </svg>
+    <script>
+        // DOM elements
+const options = document.querySelectorAll(".options li");
+const levelElement = document.querySelector(".level span");
+const differenceElement = document.querySelector(".diff span");
+const resultPopup = document.querySelector("#result-container");
+const containerElement = document.querySelector(".container");
+const retryButton = document.querySelector("#retry");
+
+// Utils
+const rand = (min, max) => Math.random() * (max - min) + min;
+const randHue = () => rand(0, 360);
+const randLightness = () => rand(30, 60);
+
+// config
+const startDiff = 30;
+
+// state
+let level = 0;
+let difference = 30;
+let l1, l2;
+
+// UI Update
+const updateText = () => {
+	levelElement.textContent = level
+	differenceElement.textContent = difference
+};
+
+// generate next level
+const next = () => {
+	level++;
+	const h = randHue();
+	const sign = Math.random() > 0.5 ? -1 : +1;
+	difference = (startDiff / level).toFixed(2);
+	l1 = randLightness();
+	l2 = l1 + sign * difference;
+	options[0].style.background = `hsl(${h}deg, 100%, ${l1}%)`;
+	options[1].style.background = `hsl(${h}deg, 100%, ${l2}%)`;
+	updateText();
+};
+
+const declare = (className) => (el, cb) => {
+	el.classList.add(className);
+	setTimeout(() => {
+		el.classList.remove(className);
+		cb();
+	}, 600);
+};
+
+const correct = declare("correct");
+const wrong = declare("wrong");
+
+options.forEach((option, i) => {
+	option.addEventListener("click", () => {
+		if ((i === 0 && l1 > l2) || (i === 1 && l2 > l1)) {
+			correct(option, next);
+		} else {
+			wrong(option, showResults);
+		}
+	});
+});
+
+const showResults = () => {
+	resultPopup.hidden = false;
+	resultPopup.querySelector("#result").textContent = difference;
+	containerElement.classList.add("blur");
+};
+
+const hideResults = () => {
+	resultPopup.hidden = true;
+	containerElement.classList.remove("blur");
+};
+
+retryButton.addEventListener("click", () => {
+	hideResults();
+	level = 0;
+	next();
+});
+
+// start level
+next();
+
+    </script>
+    </body>
+    </html>
+    
